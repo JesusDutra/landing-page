@@ -38,6 +38,19 @@ class StrategyEngineTests(unittest.TestCase):
         self.assertEqual(state.best_price, Decimal("104"))
         self.assertEqual(eng.candidate_trailing_stop(state, pos), Decimal("103.480"))
 
+
+    def test_best_price_and_candidate_stop_short(self) -> None:
+        eng = self.make_engine()
+        state = StrategyState(partial_taken=True)
+        pos = PositionSnapshot(entry_price=Decimal("100"), side="SHORT")
+
+        eng.update_best_price(state, pos, Decimal("97"))
+        eng.update_best_price(state, pos, Decimal("96"))
+        eng.update_best_price(state, pos, Decimal("96.8"))
+
+        self.assertEqual(state.best_price, Decimal("96"))
+        self.assertEqual(eng.candidate_trailing_stop(state, pos), Decimal("96.480"))
+
     def test_should_trail_step_filter(self) -> None:
         eng = self.make_engine()
         pos = PositionSnapshot(entry_price=Decimal("100"), side="LONG")
@@ -45,6 +58,15 @@ class StrategyEngineTests(unittest.TestCase):
         state = StrategyState(current_stop_price=Decimal("102"))
         self.assertFalse(eng.should_trail(state, pos, Decimal("102.20")))
         self.assertTrue(eng.should_trail(state, pos, Decimal("102.30")))
+
+
+    def test_should_trail_step_filter_short(self) -> None:
+        eng = self.make_engine()
+        pos = PositionSnapshot(entry_price=Decimal("100"), side="SHORT")
+
+        state = StrategyState(current_stop_price=Decimal("98"))
+        self.assertFalse(eng.should_trail(state, pos, Decimal("97.80")))
+        self.assertTrue(eng.should_trail(state, pos, Decimal("97.70")))
 
     def test_reset_state(self) -> None:
         state = StrategyState(

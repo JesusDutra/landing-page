@@ -67,3 +67,13 @@ python -m unittest discover -s tests -p 'test_*.py' -v
 ## Nota
 
 Automatizar futuros implica riesgo alto (slippage, latencia, gaps, liquidación). Usa este bot como framework inicial y adapta tus reglas exactas.
+
+
+## ¿Funciona para LONG y SHORT?
+
+Sí. El motor y el bot soportan ambos lados:
+
+- **LONG**: trigger cuando el precio sube desde entrada, parcial con `SELL`, SL/trailing por debajo del mejor precio.
+- **SHORT**: trigger cuando el precio baja desde entrada, parcial con `BUY`, SL/trailing por encima del mejor precio.
+
+Puedes verlo en la lógica y también en los tests unitarios para ambos casos.
