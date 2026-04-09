@@ -53,3 +53,17 @@ python binance_scaleout_bot.py
 - Usa `MARK_PRICE` para evaluar trigger y para el stop de BE.
 - Revisá comisiones, slippage y restricciones del símbolo (tick/step).
 - No es asesoramiento financiero.
+
+
+## Troubleshooting
+
+### Error `code=-1021` (Timestamp ahead/behind)
+
+Si ves `Timestamp for this request was ... ahead/behind`, tu reloj local está desfasado.
+Este bot ahora resincroniza automáticamente el reloj con Binance al iniciar y cuando detecta ese error.
+
+En Windows, además conviene:
+
+1. Configuración → Hora e idioma → Fecha y hora → activar ajuste automático.
+2. Sincronizar hora manualmente (`w32tm /resync` en CMD como administrador).
+

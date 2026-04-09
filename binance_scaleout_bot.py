@@ -16,10 +16,17 @@ import os
 import time
 from dataclasses import dataclass
 from decimal import Decimal, ROUND_DOWN
+from datetime import datetime, timezone
 from typing import Optional, Tuple
 
 from binance.client import Client
 from binance.exceptions import BinanceAPIException
+
+
+
+
+def utc_ms_now() -> int:
+    return int(datetime.now(timezone.utc).timestamp() * 1000)
 
 
 @dataclass
@@ -42,6 +49,13 @@ class BinanceScaleoutBot:
         self.client = client
         self.config = config
         self.qty_step, self.price_tick = self._load_symbol_filters(config.symbol)
+        self.sync_time()
+
+    def sync_time(self) -> None:
+        """Sincroniza el offset de reloj local contra Binance para evitar -1021."""
+        server = self.client.futures_time()
+        server_ms = int(server["serverTime"])
+        self.client.timestamp_offset = server_ms - utc_ms_now()
 
     def _load_symbol_filters(self, symbol: str) -> Tuple[Decimal, Decimal]:
         info = self.client.futures_exchange_info()
@@ -163,6 +177,15 @@ class BinanceScaleoutBot:
                     time.sleep(self.config.poll_seconds)
 
             except BinanceAPIException as e:
+                if e.code == -1021:
+                    print("⚠️ Desfase horario detectado (-1021). Resincronizando reloj...")
+                    try:
+                        self.sync_time()
+                    except Exception as sync_err:  # noqa: BLE001
+                        print(f"No se pudo resincronizar hora: {sync_err}")
+                    time.sleep(1)
+                    continue
+
                 print(f"Error API Binance: {e.message} (code={e.code})")
                 time.sleep(max(self.config.poll_seconds, 3))
             except Exception as e:  # noqa: BLE001
